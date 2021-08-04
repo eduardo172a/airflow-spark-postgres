@@ -61,25 +61,10 @@ output_hour_df = output_year_df.withColumn('hour',hour(col("datetime_only")))
 bucketizer = Bucketizer(splits=[ 0,4,8, 12, 16, 20, 24 ],inputCol="hour", outputCol="buckets")
 df_buck = bucketizer.setHandleInvalid("keep").transform(output_hour_df)
 
-t = {0.0:"Late Night", 1.0: "Early Morning", 2.0:"Morning", 3.0: "Noon", 4.0: "Eve", 5.0: "Noon"}
+t = {0.0:"Late Night", 1.0: "Early Morning", 2.0:"Morning", 3.0: "Noon", 4.0: "Eve", 5.0: "Night"}
 udf_foo = udf(lambda x: t[x], StringType())
 output_session_df = df_buck.withColumn("hour_bucket", udf_foo("buckets"))
 output_session_droped_df = output_session_df.drop('buckets')
-# output_destination_y_df.show()
-# df_ratings_csv = (
-#     spark.read
-#     .format("csv")
-#     .option("header", True)
-#     .load(ratings_file)
-#     .withColumnRenamed("timestamp","timestamp_epoch")
-# )
-
-# # Convert epoch to timestamp and rating to DoubleType
-# df_ratings_csv_fmt = (
-#     df_ratings_csv
-#     .withColumn('rating', col("rating").cast(DoubleType()))
-#     .withColumn('timestamp', to_timestamp(from_unixtime(col("timestamp_epoch"))))
-# )
 
 ####################################
 # Load data to Postgres
@@ -98,16 +83,3 @@ print("######################################")
     .mode("overwrite")
     .save()
 )
-
-# (
-#      df_ratings_csv_fmt
-#      .select([c for c in df_ratings_csv_fmt.columns if c != "timestamp_epoch"])
-#      .write
-#      .format("jdbc")
-#      .option("url", postgres_db)
-#      .option("dbtable", "public.ratings")
-#      .option("user", postgres_user)
-#      .option("password", postgres_pwd)
-#      .mode("overwrite")
-#      .save()
-# )

@@ -36,10 +36,10 @@ dag = DAG(
         dag_id="spark-postgres", 
         description="This DAG is a sample of integration between Spark and DB. It reads CSV files, load them into a Postgres DB and then read them from the same Postgres DB.",
         default_args=default_args, 
-        schedule_interval=timedelta(1)
+        schedule_interval="00 1 * * *"
     )
 
-start 	= DummyOperator(task_id='dummy_task',start_date=datetime(now.year, now.month, now.day), retries=3)
+start 	= DummyOperator(task_id='start',start_date=datetime(now.year, now.month, now.day), retries=3)
 
 spark_job_load_postgres = SparkSubmitOperator(
     task_id="spark_job_load_postgres",
@@ -56,14 +56,14 @@ spark_job_load_postgres = SparkSubmitOperator(
 create_datawarehouse_tables = PostgresOperator(
     task_id="create_datawarehouse_tables",
     postgres_conn_id="postgres_default",
-    sql='sql/create_datawarehouse_tables.sql',
+    sql="./sql/create_datawarehouse_tables.sql",
     start_date=datetime(now.year, now.month, now.day),
     dag=dag)
 
 update_datawarehouse_tables = PostgresOperator(
     task_id="update_datawarehouse_tables",
     postgres_conn_id="postgres_default",
-    sql='sql/update_datawarehouse_tables.sql',
+    sql="./sql/update_datawarehouse_tables.sql",
     start_date=datetime(now.year, now.month, now.day),
     dag=dag)
 
